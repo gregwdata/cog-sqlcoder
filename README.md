@@ -2,6 +2,17 @@ This is a cog wrapper around [Defog's SQLCoder](https://github.com/defog-ai/sqlc
 
 It has initially been deployed with 8-bit quantization.
 
+Running with `cog`:
+
+Install cog with
+
+  sudo curl -o /usr/local/bin/cog -L https://github.com/replicate/cog/releases/latest/download/cog_`uname -s`_`uname -m`
+  sudo chmod +x /usr/local/bin/cog
+
+To run the model, use `sudo cog predict -i prompt="Your question here"`
+
+*All those `sudo`s are required to obtain the elevated privileges needed to run docker.*
+
 # Defog SQLCoder
 Defog's SQLCoder is a state-of-the-art LLM for converting natural language questions to SQL queries.
 
