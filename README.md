@@ -1,3 +1,7 @@
+This is a cog wrapper around [Defog's SQLCoder](https://github.com/defog-ai/sqlcoder), to deploy it on [Replicate](https://replicate.com/gregwdata/defog-sqlcoder-q8) .
+
+It has initially been deployed with 8-bit quantization.
+
 # Defog SQLCoder
 Defog's SQLCoder is a state-of-the-art LLM for converting natural language questions to SQL queries.
 
