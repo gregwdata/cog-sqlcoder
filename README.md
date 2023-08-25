@@ -6,12 +6,21 @@ Running with `cog`:
 
 Install cog with
 
+```
   sudo curl -o /usr/local/bin/cog -L https://github.com/replicate/cog/releases/latest/download/cog_`uname -s`_`uname -m`
   sudo chmod +x /usr/local/bin/cog
+```
+
+To locally store the quantized weights: `sudo cog run python save_model_8_bit.py`
 
 To run the model, use `sudo cog predict -i prompt="Your question here"`
 
-To run with streaming, and see the output printed to stdout (thanks to the `debug` flag), use `sudo cog predict -i prompt="Your question here" -i stream=true -i debug=true`
+To push to replicate:
+
+```
+cog login
+cog push r8.im/<your-username>/<your-model-name>
+```
 
 *All those `sudo`s are required to obtain the elevated privileges needed to run docker.*
 

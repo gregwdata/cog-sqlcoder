@@ -158,9 +158,9 @@ CREATE TABLE product_suppliers (
             ge=-1,
             default=-1,
         ),
-        stream: bool = Input(
-            description="whether to stream output - sets beam search to 1, so may reduce result quality", default=False
-        ),
+        # stream: bool = Input(
+        #     description="whether to stream output - sets beam search to 1, so may reduce result quality", default=False
+        # ),
         debug: bool = Input(
             description="provide debugging output in logs", default=False
         ),
@@ -177,67 +177,32 @@ CREATE TABLE product_suppliers (
             torch.cuda.manual_seed(seed)
                 
         eos_token_id = self.tokenizer.convert_tokens_to_ids(["```"])[0]
-        
-        if stream:
             
-            streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True)
+        streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True)
 
-            inputs = self.tokenizer(prompt, return_tensors="pt").input_ids
-            inputs = inputs.to('cuda')
-            generation_kwargs = dict(inputs=inputs, 
-                                     streamer=streamer, 
-                                     max_new_tokens=max_length, 
-                                     do_sample=True,
-                                     num_beams=1, 
-                                     num_return_sequences=1,
-                                     eos_token_id=eos_token_id,
-                                     pad_token_id=eos_token_id,
-                                    )
-            thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
-            thread.start()
-            
-            if prompt_template.endswith("""```sql"""):
-                yield """```sql""" # prepend output with markdown code cell backticks
-            
-            for new_text in streamer:
-                if debug:
-                    print(new_text,end="") 
-                yield new_text
+        inputs = self.tokenizer(prompt, return_tensors="pt").input_ids
+        inputs = inputs.to('cuda')
+        generation_kwargs = dict(inputs=inputs, 
+                                 streamer=streamer, 
+                                 max_new_tokens=max_length, 
+                                 do_sample=True,
+                                 num_beams=1, #this must be set to 1 for streaming to work. Huggingface's streamer doesn't currently support beam search
+                                 num_return_sequences=1,
+                                 eos_token_id=eos_token_id,
+                                 pad_token_id=eos_token_id,
+                                )
+        thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
+        thread.start()
 
+        if prompt_template.endswith("""```sql"""):
+            yield """```sql""" # prepend output with markdown code cell backticks
+
+        for new_text in streamer:
             if debug:
-                print(f"cur memory: {torch.cuda.memory_allocated()}")
-                print(f"max allocated: {torch.cuda.max_memory_allocated()}")
-                print(f"peak memory: {torch.cuda.max_memory_reserved()}")
+                print(new_text,end="") 
+            yield new_text
 
-            
-        else: #not stream
-            pipe = pipeline(
-                "text-generation",
-                model=self.model,
-                tokenizer=self.tokenizer,
-                max_new_tokens=max_length,
-                do_sample=False,
-                num_beams=5, # do beam search with 5 beams for high quality results
-            )
-            generated_query = (
-                pipe(
-                    prompt,
-                    num_return_sequences=1,
-                    eos_token_id=eos_token_id,
-                    pad_token_id=eos_token_id,
-                )[0]["generated_text"]
-                .split("```sql")[-1]
-                .split("```")[0]
-                .split(";")[0]
-                .strip()
-                + ";"
-            )        
-
-            if debug:
-                print(f"cur memory: {torch.cuda.memory_allocated()}")
-                print(f"max allocated: {torch.cuda.max_memory_allocated()}")
-                print(f"peak memory: {torch.cuda.max_memory_reserved()}")
-
-            #print(generated_query)
-
-            return generated_query
+        if debug:
+            print(f"cur memory: {torch.cuda.memory_allocated()}")
+            print(f"max allocated: {torch.cuda.max_memory_allocated()}")
+            print(f"peak memory: {torch.cuda.max_memory_reserved()}")
