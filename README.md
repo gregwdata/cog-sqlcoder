@@ -11,6 +11,8 @@ Install cog with
 
 To run the model, use `sudo cog predict -i prompt="Your question here"`
 
+To run with streaming, and see the output printed to stdout (thanks to the `debug` flag), use `sudo cog predict -i prompt="Your question here" -i stream=true -i debug=true`
+
 *All those `sudo`s are required to obtain the elevated privileges needed to run docker.*
 
 # Defog SQLCoder
